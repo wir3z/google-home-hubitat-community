@@ -395,7 +395,7 @@ def mainPreferences() {
     }
 }
 
-@SuppressWarnings(['MethodSize', 'ComplexMethod'])
+@SuppressWarnings(['MethodSize', 'ComplexCode'])
 def deviceTypePreferences(deviceType) {
     state.remove("currentlyEditingDeviceTrait")
     if (deviceType == null) {
@@ -1724,24 +1724,24 @@ private deviceTraitPreferences_StatusReport(deviceTrait) {
                     name: "${deviceTrait.name}.statusTypes.${i}.deviceTargetAttribute",
                     title: "Device Target Attribute",
                     type: "text",
-					defaultValue: "deviceTargetAttribute",
-					required: true
-				)
+                    defaultValue: "deviceTargetAttribute",
+                    required: true
+                )
                 input(
-					name: "${deviceTrait.name}.statusTypes.${i}.priorityValue",
-					title: "Priority Value (0 is highest)",
-					type: "number",
-					defaultValue: 0,
-					range: "0..${STATUS_REPORT_MAX_TYPES}",
-					required: true
-				)
+                    name: "${deviceTrait.name}.statusTypes.${i}.priorityValue",
+                    title: "Priority Value (0 is highest)",
+                    type: "number",
+                    defaultValue: 0,
+                    range: "0..${STATUS_REPORT_MAX_TYPES}",
+                    required: true
+                )
                 input(
-					name: "${deviceTrait.name}.statusTypes.${i}.blockingValue",
-					title: "Blocking other statuses if active",
-					type: "bool",
-					defaultValue: false,
-					required: true
-				)
+                    name: "${deviceTrait.name}.statusTypes.${i}.blockingValue",
+                    title: "Blocking other statuses if active",
+                    type: "bool",
+                    defaultValue: false,
+                    required: true
+                )
             }
         }
     }
