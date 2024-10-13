@@ -1711,7 +1711,7 @@ private deviceTraitPreferences_StatusReport(deviceTrait) {
             title: "Number of Status Types",
             type: "number",
             range: "1..${STATUS_REPORT_MAX_TYPES}",
-    		defaultValue: 1,
+            defaultValue: 1,
             required: true,
             submitOnChange: true
         )
@@ -1719,15 +1719,15 @@ private deviceTraitPreferences_StatusReport(deviceTrait) {
 
     if (deviceTrait.numStatusTypes) {
         (0..<deviceTrait.numStatusTypes).each { i ->
-            section("<b>Status Report Type #${i+1}</b>") {
-				input(
+            section("<b>Status Report Type #${i + 1}</b>") {
+                input(
                     name: "${deviceTrait.name}.statusTypes.${i}.deviceTargetAttribute",
                     title: "Device Target Attribute",
 					type: "text",
 					defaultValue: "deviceTargetAttribute",
 					required: true
 				)
-				input(
+                input(
 					name: "${deviceTrait.name}.statusTypes.${i}.priorityValue",
 					title: "Priority Value (0 is highest)",
 					type: "number",
@@ -1735,7 +1735,7 @@ private deviceTraitPreferences_StatusReport(deviceTrait) {
 					range: "0..${STATUS_REPORT_MAX_TYPES}",
 					required: true
 				)
-				input(
+                input(
 					name: "${deviceTrait.name}.statusTypes.${i}.blockingValue",
 					title: "Blocking other statuses if active",
 					type: "bool",
@@ -5683,7 +5683,6 @@ private static final GOOGLE_SENSOR_STATES = [
         "numericUnits" :                         "PARTS_PER_MILLION",
     ],
 ]
-
 
 @Field
 private static Number STATUS_REPORT_MAX_TYPES = 32
