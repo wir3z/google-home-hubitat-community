@@ -81,6 +81,7 @@
 //                   Allow for traits to support descriptive and/or numeric responses.
 //   * Jun 06 2023 - Add support for the OccupancySensing trait
 //   * Apr 12 2024 - Code cleanup
+//   * Oct 11 2024 - Added StatusReport trait
 
 import groovy.json.JsonException
 import groovy.json.JsonOutput
@@ -1698,6 +1699,50 @@ private deviceTraitPreferences_StartStop(deviceTrait) {
                 required: true,
                 defaultValue: "pause"
             )
+        }
+    }
+}
+
+@SuppressWarnings('UnusedPrivateMethod')
+private deviceTraitPreferences_StatusReport(deviceTrait) {
+    section("Status Report Settings") {
+        input(
+            name: "${deviceTrait.name}.numStatusTypes",
+            title: "Number of Status Types",
+            type: "number",
+            range: "1..${STATUS_REPORT_MAX_TYPES}",
+    		defaultValue: 1,
+            required: true,
+            submitOnChange: true
+        )
+    }
+
+    if (deviceTrait.numStatusTypes) {
+        (0..<deviceTrait.numStatusTypes).each { i ->
+            section("<b>Status Report Type #${i+1}</b>") {
+				input(
+                    name: "${deviceTrait.name}.statusTypes.${i}.deviceTargetAttribute",
+                    title: "Device Target Attribute",
+					type: "text",
+					defaultValue: "deviceTargetAttribute",
+					required: true
+				)
+				input(
+					name: "${deviceTrait.name}.statusTypes.${i}.priorityValue",
+					title: "Priority Value (0 is highest)",
+					type: "number",
+					defaultValue: 0,
+					range: "0..${STATUS_REPORT_MAX_TYPES}",
+					required: true
+				)
+				input(
+					name: "${deviceTrait.name}.statusTypes.${i}.blockingValue",
+					title: "Blocking other statuses if active",
+					type: "bool",
+					defaultValue: false,
+					required: true
+				)
+            }
         }
     }
 }
@@ -3489,6 +3534,22 @@ private deviceStateForTrait_StartStop(deviceTrait, device) {
 }
 
 @SuppressWarnings('UnusedPrivateMethod')
+private deviceStateForTrait_StatusReport(deviceTrait, device) {
+    def statusReport = []
+    (0..<deviceTrait.numStatusTypes).each { i ->
+        statusReport << [
+            deviceTarget: deviceTrait.statusTypes[i].deviceTargetAttribute,
+            statusCode: device.currentValue(deviceTrait.statusTypes[i].deviceTargetAttribute),
+            priority: deviceTrait.statusTypes[i].priorityValue,
+            blocking: deviceTrait.statusTypes[i].blockingValue,
+        ]
+    }
+    return [
+        currentStatusReport: statusReport
+    ]
+}
+
+@SuppressWarnings('UnusedPrivateMethod')
 private deviceStateForTrait_TemperatureControl(deviceTrait, device) {
     def currentTemperature = device.currentValue(deviceTrait.currentTemperatureAttribute)
     if (deviceTrait.temperatureUnit == "F") {
@@ -3965,6 +4026,11 @@ private attributesForTrait_StartStop(deviceTrait, device) {
     return [
         pausable: deviceTrait.canPause,
     ]
+}
+
+@SuppressWarnings(['UnusedPrivateMethod', 'UnusedPrivateMethodParameter'])
+private attributesForTrait_StatusReport(deviceTrait, device) {
+    return [:]
 }
 
 @SuppressWarnings(['UnusedPrivateMethod', 'UnusedPrivateMethodParameter'])
@@ -4467,6 +4533,27 @@ private traitFromSettings_StartStop(traitName) {
 }
 
 @SuppressWarnings('UnusedPrivateMethod')
+private traitFromSettings_StatusReport(traitName) {
+    // default to 1 numStatusTypes when the trait is first initialized
+    def statusReportMapping = [
+        numStatusTypes: (settings."${traitName}.numStatusTypes" ?: 1),
+        statusTypes:    [:],
+        commands:       [],
+    ]
+
+    (0..<statusReportMapping.numStatusTypes).each { i ->
+        def statusReport = [
+            deviceTargetAttribute: settings."${traitName}.statusTypes.${i}.deviceTargetAttribute",
+            priorityValue:         settings."${traitName}.statusTypes.${i}.priorityValue",
+            blockingValue:         settings."${traitName}.statusTypes.${i}.blockingValue",
+        ]
+        statusReportMapping.statusTypes[i] = statusReport
+    }
+
+    return statusReportMapping
+}
+
+@SuppressWarnings('UnusedPrivateMethod')
 private traitFromSettings_TemperatureControl(traitName) {
     def tempControlTrait = [
         temperatureUnit:             settings."${traitName}.temperatureUnit",
@@ -4923,6 +5010,16 @@ private deleteDeviceTrait_StartStop(deviceTrait) {
     app.removeSetting("${deviceTrait.name}.startCommand")
     app.removeSetting("${deviceTrait.name}.stopCommand")
     app.removeSetting("${deviceTrait.name}.pauseCommand")
+}
+
+@SuppressWarnings('UnusedPrivateMethod')
+private deleteDeviceTrait_StatusReport(deviceTrait) {
+    app.removeSetting("${deviceTrait.name}.numStatusTypes")
+    (0..<STATUS_REPORT_MAX_TYPES).each { i ->
+        app.removeSetting("${deviceTrait.name}.statusTypes.${i}.deviceTargetAttribute")
+        app.removeSetting("${deviceTrait.name}.statusTypes.${i}.priorityValue")
+        app.removeSetting("${deviceTrait.name}.statusTypes.${i}.blockingValue")
+    }
 }
 
 @SuppressWarnings('UnusedPrivateMethod')
@@ -5406,7 +5503,7 @@ private static final GOOGLE_DEVICE_TRAITS = [
     Scene: "Scene",
     SoftwareUpdate: "Software Update",
     StartStop: "Start/Stop",
-    //StatusReport: "Status Report",
+    StatusReport: "Status Report",
     TemperatureControl: "Temperature Control",
     TemperatureSetting: "Temperature Setting",
     Timer: "Timer",
@@ -5586,6 +5683,10 @@ private static final GOOGLE_SENSOR_STATES = [
         "numericUnits" :                         "PARTS_PER_MILLION",
     ],
 ]
+
+
+@Field
+private static Number STATUS_REPORT_MAX_TYPES = 32
 
 @Field
 private static final THERMOSTAT_MODE_SETPOINT_COMMAND_PREFERENCES = [
