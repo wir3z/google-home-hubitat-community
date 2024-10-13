@@ -395,7 +395,7 @@ def mainPreferences() {
     }
 }
 
-@SuppressWarnings('MethodSize')
+@SuppressWarnings(['MethodSize', 'ComplexMethod'])
 def deviceTypePreferences(deviceType) {
     state.remove("currentlyEditingDeviceTrait")
     if (deviceType == null) {
@@ -1723,7 +1723,7 @@ private deviceTraitPreferences_StatusReport(deviceTrait) {
                 input(
                     name: "${deviceTrait.name}.statusTypes.${i}.deviceTargetAttribute",
                     title: "Device Target Attribute",
-					type: "text",
+                    type: "text",
 					defaultValue: "deviceTargetAttribute",
 					required: true
 				)
